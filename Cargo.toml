@@ -1,0 +1,10 @@
+[package]
+name = "rust-link-macOS-framework"
+version = "0.1.0"
+authors = ["Junfeng Li <lijunfen@amazon.com>"]
+
+[dependencies]
+core-foundation-sys = "*"
+core-foundation = "*"
+cocoa = "*"
+libc = "*"
