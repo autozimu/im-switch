@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 extern crate core_foundation_sys;
 extern crate core_foundation;
 extern crate cocoa;
@@ -5,10 +7,8 @@ extern crate libc;
 
 use std::env;
 use std::ffi::CStr;
-use core_foundation_sys::string::{CFStringRef, CFStringGetCStringPtr, kCFStringEncodingUTF8, CFStringCreateWithBytes};
-use core_foundation_sys::base::{Boolean, kCFAllocatorDefault, kCFAllocatorNull};
-use core_foundation::base::{CFIndexConvertible};
-use core_foundation::string::CFString;
+use core_foundation_sys::string::CFStringRef;
+use cocoa::foundation::NSString;
 
 trait ToStr {
     fn to_str(&self) -> &str;
@@ -16,8 +16,12 @@ trait ToStr {
 
 impl ToStr for CFStringRef {
     fn to_str(&self) -> &str {
-        let ptr = unsafe { CFStringGetCStringPtr(*self, kCFStringEncodingUTF8) };
-        unsafe { CStr::from_ptr(ptr) }.to_str().expect("Failed to convert to str")
+        use cocoa::base::id;
+
+        unsafe {
+            let ptr = (*self as id).UTF8String();
+            CStr::from_ptr(ptr).to_str().expect("Failed to convert to str")
+        }
     }
 }
 
@@ -27,20 +31,18 @@ trait TOCFStringRef {
 
 impl TOCFStringRef for str {
     fn to_CFStringRef(&self) -> CFStringRef {
+        use cocoa::base::nil;
+
         unsafe {
-            CFStringCreateWithBytes(kCFAllocatorDefault,
-                                    self.as_ptr(),
-                                    self.len().to_CFIndex(),
-                                    kCFStringEncodingUTF8,
-                                    false as Boolean,
-                                    kCFAllocatorNull)
+            NSString::alloc(nil).init_str(self) as CFStringRef
         }
     }
 }
 
+// Opaque C struct.
 enum TISInputSourceRef {}
+
 #[link(name = "Carbon", kind = "framework")]
-#[allow(non_snake_case)]
 extern {
     fn TISCopyCurrentKeyboardInputSource() -> *mut TISInputSourceRef;
     fn TISGetInputSourceProperty(inputSource: *mut TISInputSourceRef, key: CFStringRef) -> CFStringRef;
