@@ -1,10 +1,9 @@
 [package]
-name = "rust-link-macOS-framework"
+name = "im-switch"
 version = "0.1.0"
-authors = ["Junfeng Li <lijunfen@amazon.com>"]
+authors = ["Junfeng Li <autozimu@gmail.com>"]
 
 [dependencies]
 core-foundation-sys = "*"
-core-foundation = "*"
 cocoa = "*"
-libc = "*"
+clap = "*"

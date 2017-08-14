@@ -2,8 +2,8 @@
 
 extern crate core_foundation_sys;
 extern crate cocoa;
+extern crate clap;
 
-use std::env;
 use std::ffi::CStr;
 use core_foundation_sys::string::CFStringRef;
 use cocoa::foundation::NSString;
@@ -50,15 +50,31 @@ extern {
 
 
 fn main() {
-    // Get IM.
-    let input_source = unsafe { TISCopyCurrentKeyboardInputSource() };
-    let input_source_id = unsafe { TISGetInputSourceProperty(input_source, kTISPropertyInputSourceID) };
-    println!("Current input method: {}", input_source_id.to_str());
+    let args = clap::App::new("im-switch")
+        .version("0.1")
+        .author("Junfeng Li <autozimu@gmail.com>")
+        .about("switch input source for macOS")
+        .arg(clap::Arg::with_name("source")
+            .short("s")
+            .long("source")
+            .value_name("SOURCE")
+            .help("target input source name")
+            .takes_value(true))
+        .get_matches();
 
-    // Set IM.
-    let name = env::args().nth(1).expect("Argument expected").to_CFStringRef();
 
-    let input_source = unsafe { TISCopyInputSourceForLanguage(name) };
-    let input_source_id = unsafe { TISGetInputSourceProperty(input_source, kTISPropertyInputSourceID) };
-    println!("New input method: {}", input_source_id.to_str());
+    if args.is_present("source") {
+        // Set IM.
+        let name = args.value_of("source").unwrap().to_CFStringRef();
+
+        let input_source = unsafe { TISCopyInputSourceForLanguage(name) };
+        let input_source_id = unsafe { TISGetInputSourceProperty(input_source, kTISPropertyInputSourceID) };
+        println!("New input source: {}", input_source_id.to_str());
+    } else {
+        // Get IM.
+        let input_source = unsafe { TISCopyCurrentKeyboardInputSource() };
+        let input_source_id = unsafe { TISGetInputSourceProperty(input_source, kTISPropertyInputSourceID) };
+        println!("Current input source: {}", input_source_id.to_str());
+
+    }
 }
