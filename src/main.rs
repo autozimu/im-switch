@@ -1,9 +1,7 @@
 #![allow(non_snake_case)]
 
 extern crate core_foundation_sys;
-extern crate core_foundation;
 extern crate cocoa;
-extern crate libc;
 
 use std::env;
 use std::ffi::CStr;
