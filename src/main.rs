@@ -18,7 +18,9 @@ impl ToStr for CFStringRef {
 
         unsafe {
             let ptr = (*self as id).UTF8String();
-            CStr::from_ptr(ptr).to_str().expect("Failed to convert to str")
+            CStr::from_ptr(ptr).to_str().expect(
+                "Failed to convert to str",
+            )
         }
     }
 }
@@ -31,9 +33,7 @@ impl TOCFStringRef for str {
     fn to_CFStringRef(&self) -> CFStringRef {
         use cocoa::base::nil;
 
-        unsafe {
-            NSString::alloc(nil).init_str(self) as CFStringRef
-        }
+        unsafe { NSString::alloc(nil).init_str(self) as CFStringRef }
     }
 }
 
@@ -42,9 +42,12 @@ enum TISInputSourceRef {}
 type OSStatus = i64;
 
 #[link(name = "Carbon", kind = "framework")]
-extern {
+extern "C" {
     fn TISCopyCurrentKeyboardInputSource() -> *mut TISInputSourceRef;
-    fn TISGetInputSourceProperty(inputSource: *mut TISInputSourceRef, key: CFStringRef) -> CFStringRef;
+    fn TISGetInputSourceProperty(
+        inputSource: *mut TISInputSourceRef,
+        key: CFStringRef,
+    ) -> CFStringRef;
     fn TISCopyInputSourceForLanguage(CFStringRef: CFStringRef) -> *mut TISInputSourceRef;
     fn TISSelectInputSource(source: *mut TISInputSourceRef) -> OSStatus;
     static kTISPropertyInputSourceID: CFStringRef;
@@ -55,13 +58,15 @@ fn main() {
     let args = clap::App::new("im-switch")
         .version("0.1")
         .author("Junfeng Li <autozimu@gmail.com>")
-        .about("switch input source for macOS")
-        .arg(clap::Arg::with_name("source")
-            .short("s")
-            .long("source")
-            .value_name("SOURCE")
-            .help("target input source name")
-            .takes_value(true))
+        .about("Input Method SWITCH for macOS")
+        .arg(
+            clap::Arg::with_name("source")
+                .short("s")
+                .long("source")
+                .value_name("SOURCE")
+                .help("target input source name")
+                .takes_value(true),
+        )
         .get_matches();
 
 
@@ -70,7 +75,8 @@ fn main() {
         let name = args.value_of("source").unwrap().to_CFStringRef();
 
         let input_source = unsafe { TISCopyInputSourceForLanguage(name) };
-        let input_source_id = unsafe { TISGetInputSourceProperty(input_source, kTISPropertyInputSourceID) };
+        let input_source_id =
+            unsafe { TISGetInputSourceProperty(input_source, kTISPropertyInputSourceID) };
         let input_source_id = input_source_id.to_str();
         let ret = unsafe { TISSelectInputSource(input_source) };
         if ret == 0 {
@@ -82,7 +88,8 @@ fn main() {
     } else {
         // Get IM.
         let input_source = unsafe { TISCopyCurrentKeyboardInputSource() };
-        let input_source_id = unsafe { TISGetInputSourceProperty(input_source, kTISPropertyInputSourceID) };
+        let input_source_id =
+            unsafe { TISGetInputSourceProperty(input_source, kTISPropertyInputSourceID) };
         println!("Current input source: {}", input_source_id.to_str());
 
     }
