@@ -39,12 +39,14 @@ impl TOCFStringRef for str {
 
 // Opaque C struct.
 enum TISInputSourceRef {}
+type OSStatus = i64;
 
 #[link(name = "Carbon", kind = "framework")]
 extern {
     fn TISCopyCurrentKeyboardInputSource() -> *mut TISInputSourceRef;
     fn TISGetInputSourceProperty(inputSource: *mut TISInputSourceRef, key: CFStringRef) -> CFStringRef;
     fn TISCopyInputSourceForLanguage(CFStringRef: CFStringRef) -> *mut TISInputSourceRef;
+    fn TISSelectInputSource(source: *mut TISInputSourceRef) -> OSStatus;
     static kTISPropertyInputSourceID: CFStringRef;
 }
 
@@ -69,7 +71,14 @@ fn main() {
 
         let input_source = unsafe { TISCopyInputSourceForLanguage(name) };
         let input_source_id = unsafe { TISGetInputSourceProperty(input_source, kTISPropertyInputSourceID) };
-        println!("New input source: {}", input_source_id.to_str());
+        let input_source_id = input_source_id.to_str();
+        let ret = unsafe { TISSelectInputSource(input_source) };
+        if ret == 0 {
+            println!("Switched to input source: {}", input_source_id);
+        } else {
+            println!("Failed to switch to input source: {}", input_source_id);
+            std::process::exit(ret as i32);
+        }
     } else {
         // Get IM.
         let input_source = unsafe { TISCopyCurrentKeyboardInputSource() };
