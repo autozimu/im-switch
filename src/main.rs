@@ -15,16 +15,16 @@ use core_foundation_sys::string::CFStringRef;
 use cocoa::foundation::NSString;
 
 trait ToStr {
-    fn to_str(&self) -> &str;
+    fn to_str(&self) -> Result<&str>;
 }
 
 impl ToStr for CFStringRef {
-    fn to_str(&self) -> &str {
+    fn to_str(&self) -> Result<&str> {
         use cocoa::base::id;
 
         unsafe {
             let ptr = (*self as id).UTF8String();
-            CStr::from_ptr(ptr).to_str().expect(
+            CStr::from_ptr(ptr).to_str().chain_err(||
                 "Failed to convert to str",
             )
         }
@@ -68,21 +68,21 @@ extern crate structopt_derive;
 #[derive(Debug, StructOpt)]
 struct Arguments {
     #[structopt(short = "s", help = "Target input source name")]
-    source: String;
+    source: Option<String>,
 }
 
 
-fn main() {
+fn run() -> Result<()> {
     let args = Arguments::from_args();
 
-    if args.is_present("source") {
+    if let Some(source) = args.source {
         // Set IM.
-        let name = args.value_of("source").unwrap().to_CFStringRef();
+        let name = source.as_str().to_CFStringRef();
 
         let input_source = unsafe { TISCopyInputSourceForLanguage(name) };
         let input_source_name =
             unsafe { TISGetInputSourceProperty(input_source, kTISPropertyLocalizedName) };
-        let input_source_name = input_source_name.to_str();
+        let input_source_name = input_source_name.to_str()?;
         let ret = unsafe { TISSelectInputSource(input_source) };
         if ret == 0 {
             println!("Switched to input source: {}", input_source_name);
@@ -95,8 +95,12 @@ fn main() {
         let input_source = unsafe { TISCopyCurrentKeyboardInputSource() };
         let input_source_name =
             unsafe { TISGetInputSourceProperty(input_source, kTISPropertyLocalizedName) };
-        let input_source_name = input_source_name.to_str();
+        let input_source_name = input_source_name.to_str()?;
         println!("Current input source: {}", input_source_name);
 
     }
+
+    Ok(())
 }
+
+quick_main!(run);
