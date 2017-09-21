@@ -1,8 +1,14 @@
 #![allow(non_snake_case)]
 
+#[macro_use]
+extern crate error_chain;
+mod errors {
+    error_chain!{}
+}
+use errors::*;
+
 extern crate core_foundation_sys;
 extern crate cocoa;
-extern crate clap;
 
 use std::ffi::CStr;
 use core_foundation_sys::string::CFStringRef;
@@ -54,22 +60,20 @@ extern "C" {
     static kTISPropertyLocalizedName: CFStringRef;
 }
 
+extern crate structopt;
+use structopt::StructOpt;
+#[macro_use]
+extern crate structopt_derive;
+
+#[derive(Debug, StructOpt)]
+struct Arguments {
+    #[structopt(short = "s", help = "Target input source name")]
+    source: String;
+}
+
 
 fn main() {
-    let args = clap::App::new("im-switch")
-        .version("0.1")
-        .author("Junfeng Li <autozimu@gmail.com>")
-        .about("Input Method SWITCH for macOS")
-        .arg(
-            clap::Arg::with_name("source")
-                .short("s")
-                .long("source")
-                .value_name("SOURCE")
-                .help("target input source name")
-                .takes_value(true),
-        )
-        .get_matches();
-
+    let args = Arguments::from_args();
 
     if args.is_present("source") {
         // Set IM.

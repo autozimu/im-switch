@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["Junfeng Li <autozimu@gmail.com>"]
 
 [dependencies]
-core-foundation-sys = "*"
-cocoa = "*"
-clap = "*"
+error-chain = "0.*"
+logger = "0.*"
+structopt = "0.*"
+structopt-derive = "0.*"
+
+core-foundation-sys = "0.*"
+cocoa = "0.*"
