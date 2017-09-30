@@ -24,8 +24,8 @@ impl ToStr for CFStringRef {
 
         unsafe {
             let ptr = (*self as id).UTF8String();
-            CStr::from_ptr(ptr).to_str().chain_err(||
-                "Failed to convert to str",
+            CStr::from_ptr(ptr).to_str().chain_err(
+                || "Failed to convert to str",
             )
         }
     }
@@ -67,37 +67,34 @@ extern crate structopt_derive;
 
 #[derive(Debug, StructOpt)]
 struct Arguments {
-    #[structopt(short = "s", help = "Target input source name")]
-    source: Option<String>,
+    /// Set up the input method to use inputmethodname
+    #[structopt(short = "s")]
+    inputmethodname: Option<String>,
 }
 
 
 fn run() -> Result<()> {
     let args = Arguments::from_args();
 
-    if let Some(source) = args.source {
+    if let Some(inputmethodname) = args.inputmethodname {
         // Set IM.
-        let name = source.as_str().to_CFStringRef();
+        let name = inputmethodname.as_str().to_CFStringRef();
 
         let input_source = unsafe { TISCopyInputSourceForLanguage(name) };
-        let input_source_name =
+        let local_name =
             unsafe { TISGetInputSourceProperty(input_source, kTISPropertyLocalizedName) };
-        let input_source_name = input_source_name.to_str()?;
         let ret = unsafe { TISSelectInputSource(input_source) };
         if ret == 0 {
-            println!("Switched to input source: {}", input_source_name);
+            println!("Switched to input source: {}", local_name.to_str()?);
         } else {
-            println!("Failed to switch to input source: {}", input_source_name);
-            std::process::exit(ret as i32);
+            Err("Failed to switch to input source: {}")?;
         }
     } else {
         // Get IM.
         let input_source = unsafe { TISCopyCurrentKeyboardInputSource() };
-        let input_source_name =
+        let local_name =
             unsafe { TISGetInputSourceProperty(input_source, kTISPropertyLocalizedName) };
-        let input_source_name = input_source_name.to_str()?;
-        println!("Current input source: {}", input_source_name);
-
+        println!("Current input source: {}", local_name.to_str()?);
     }
 
     Ok(())
