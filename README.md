@@ -2,6 +2,8 @@
 
 # Synopsis
 ```
+im-switch 0.1.0
+
 USAGE:
     im-switch [OPTIONS]
 
@@ -10,5 +12,5 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -s, --source <SOURCE>    target input source name
+    -s <inputmethodname>        Set up the input method to use inputmethodname
 ```
