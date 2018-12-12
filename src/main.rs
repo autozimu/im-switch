@@ -1,32 +1,22 @@
 #![allow(non_snake_case)]
 
-#[macro_use]
-extern crate error_chain;
-mod errors {
-    error_chain!{}
-}
-use errors::*;
+use failure::{bail, Fallible};
 
-extern crate core_foundation_sys;
-extern crate cocoa;
-
-use std::ffi::CStr;
-use core_foundation_sys::string::CFStringRef;
 use cocoa::foundation::NSString;
+use core_foundation_sys::string::CFStringRef;
+use std::ffi::CStr;
 
 trait ToStr {
-    fn to_str(&self) -> Result<&str>;
+    fn to_str(&self) -> Fallible<&str>;
 }
 
 impl ToStr for CFStringRef {
-    fn to_str(&self) -> Result<&str> {
+    fn to_str(&self) -> Fallible<&str> {
         use cocoa::base::id;
 
         unsafe {
             let ptr = (*self as id).UTF8String();
-            CStr::from_ptr(ptr).to_str().chain_err(
-                || "Failed to convert to str",
-            )
+            Ok(CStr::from_ptr(ptr).to_str()?)
         }
     }
 }
@@ -56,7 +46,6 @@ extern "C" {
     ) -> CFStringRef;
     fn TISCopyInputSourceForLanguage(CFStringRef: CFStringRef) -> *mut TISInputSourceRef;
     fn TISSelectInputSource(source: *mut TISInputSourceRef) -> OSStatus;
-    static kTISPropertyInputSourceID: CFStringRef;
     static kTISPropertyLocalizedName: CFStringRef;
 }
 
@@ -72,8 +61,7 @@ struct Arguments {
     inputmethodname: Option<String>,
 }
 
-
-fn run() -> Result<()> {
+fn main() -> Fallible<()> {
     let args = Arguments::from_args();
 
     if let Some(inputmethodname) = args.inputmethodname {
@@ -87,7 +75,7 @@ fn run() -> Result<()> {
         if ret == 0 {
             println!("Switched to input source: {}", local_name.to_str()?);
         } else {
-            Err("Failed to switch to input source: {}")?;
+            bail!("Failed to switch to input source: {}")
         }
     } else {
         // Get IM.
@@ -99,5 +87,3 @@ fn run() -> Result<()> {
 
     Ok(())
 }
-
-quick_main!(run);

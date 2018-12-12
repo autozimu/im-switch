@@ -2,9 +2,10 @@
 name = "im-switch"
 version = "0.1.0"
 authors = ["Junfeng Li <autozimu@gmail.com>"]
+edition = "2018"
 
 [dependencies]
-error-chain = "0.*"
+failure = "0.*"
 logger = "0.*"
 structopt = "0.*"
 structopt-derive = "0.*"
