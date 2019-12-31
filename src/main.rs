@@ -51,8 +51,6 @@ extern "C" {
 
 extern crate structopt;
 use structopt::StructOpt;
-#[macro_use]
-extern crate structopt_derive;
 
 #[derive(Debug, StructOpt)]
 struct Arguments {
