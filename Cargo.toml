@@ -12,3 +12,11 @@ structopt-derive = "*"
 
 core-foundation-sys = "*"
 cocoa = "*"
+
+[lib]
+name = "im"
+path = "src/im.rs"
+
+[[bin]]
+name = "im-switch"
+path = "src/main.rs"
