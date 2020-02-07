@@ -5,12 +5,10 @@
 im-switch 0.1.0
 
 USAGE:
-    im-switch [OPTIONS]
+    im-switch [language]
 
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-
-OPTIONS:
-    -s <inputmethodname>        Set up the input method to use inputmethodname
+ARGUMENTS:
+    [language]       Set the input method to language 
 ```
+
+For language identifiers, see https://tools.ietf.org/html/bcp47.

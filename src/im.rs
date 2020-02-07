@@ -1,25 +1,27 @@
 #![allow(non_snake_case)]
 
-use failure::{bail, Fallible};
-
+use core_foundation::base::kCFAllocatorDefault;
+use core_foundation::string::{kCFStringEncodingUTF8, CFStringCreateWithCString};
 use core_foundation::{
     base::{OSStatus, TCFType},
     string::{CFString, CFStringRef},
 };
+use std::ffi::CString;
 
-// Opaque C struct.
-enum TISInputSourceRef {}
+#[repr(C)]
+pub struct TISInputSource {
+    _private: [u8; 0],
+}
 
-#[allow(dead_code)]
 #[link(name = "Carbon", kind = "framework")]
 extern "C" {
     static kTISPropertyInputSourceID: CFStringRef;
 
-    fn TISCopyCurrentKeyboardInputSource() -> *const TISInputSourceRef;
-    fn TISCopyInputSourceForLanguage(language: CFStringRef) -> *const TISInputSourceRef;
-    fn TISSelectInputSource(input_source_ref: *const TISInputSourceRef) -> OSStatus;
+    fn TISCopyCurrentKeyboardInputSource() -> *mut TISInputSource;
+    fn TISCopyInputSourceForLanguage(language: CFStringRef) -> *mut TISInputSource;
+    fn TISSelectInputSource(input_source_ref: *mut TISInputSource) -> OSStatus;
     fn TISGetInputSourceProperty(
-        input_source_ref: *const TISInputSourceRef,
+        input_source_ref: *mut TISInputSource,
         key: CFStringRef,
     ) -> CFStringRef;
 }
@@ -32,13 +34,15 @@ pub fn get_input_source() -> String {
     }
 }
 
-pub fn set_input_source(input_source_id: &str) -> Fallible<()> {
+pub fn set_input_source(language: &str) -> () {
     unsafe {
-        let input_source_id = CFString::new(input_source_id).as_concrete_TypeRef();
-        let input_source_ref = TISCopyInputSourceForLanguage(input_source_id);
-        if TISSelectInputSource(input_source_ref) != 0 {
-            bail!("Failed to set input source!");
-        }
-        Ok(())
+        let language = CString::new(language).unwrap();
+        let language = CFStringCreateWithCString(
+            kCFAllocatorDefault,
+            language.as_ptr(),
+            kCFStringEncodingUTF8,
+        );
+        let input_source_ref = TISCopyInputSourceForLanguage(language);
+        TISSelectInputSource(input_source_ref);
     }
 }

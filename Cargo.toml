@@ -5,8 +5,6 @@ authors = ["Junfeng Li <autozimu@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-failure = "*"
-structopt = "*"
 core-foundation = "*"
 
 [lib]
