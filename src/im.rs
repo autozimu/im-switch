@@ -1,12 +1,9 @@
 #![allow(non_snake_case)]
 
-use core_foundation::base::kCFAllocatorDefault;
-use core_foundation::string::{kCFStringEncodingUTF8, CFStringCreateWithCString};
 use core_foundation::{
     base::{OSStatus, TCFType},
     string::{CFString, CFStringRef},
 };
-use std::ffi::CString;
 
 #[repr(C)]
 pub struct TISInputSource {
@@ -36,13 +33,8 @@ pub fn get_input_source() -> String {
 
 pub fn set_input_source(language: &str) -> () {
     unsafe {
-        let language = CString::new(language).unwrap();
-        let language = CFStringCreateWithCString(
-            kCFAllocatorDefault,
-            language.as_ptr(),
-            kCFStringEncodingUTF8,
-        );
-        let input_source_ref = TISCopyInputSourceForLanguage(language);
+        let language = CFString::new(language);
+        let input_source_ref = TISCopyInputSourceForLanguage(language.as_concrete_TypeRef());
         TISSelectInputSource(input_source_ref);
     }
 }
