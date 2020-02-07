@@ -17,11 +17,11 @@ pub struct TISInputSource {
 extern "C" {
     static kTISPropertyInputSourceID: CFStringRef;
 
-    fn TISCopyCurrentKeyboardInputSource() -> *mut TISInputSource;
-    fn TISCopyInputSourceForLanguage(language: CFStringRef) -> *mut TISInputSource;
-    fn TISSelectInputSource(input_source_ref: *mut TISInputSource) -> OSStatus;
+    fn TISCopyCurrentKeyboardInputSource() -> *const TISInputSource;
+    fn TISCopyInputSourceForLanguage(language: CFStringRef) -> *const TISInputSource;
+    fn TISSelectInputSource(input_source_ref: *const TISInputSource) -> OSStatus;
     fn TISGetInputSourceProperty(
-        input_source_ref: *mut TISInputSource,
+        input_source_ref: *const TISInputSource,
         key: CFStringRef,
     ) -> CFStringRef;
 }
