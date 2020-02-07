@@ -6,12 +6,8 @@ edition = "2018"
 
 [dependencies]
 failure = "*"
-logger = "*"
 structopt = "*"
-structopt-derive = "*"
-
-core-foundation-sys = "*"
-cocoa = "*"
+core-foundation = "*"
 
 [lib]
 name = "im"

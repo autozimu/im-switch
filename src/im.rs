@@ -2,9 +2,10 @@
 
 use failure::{bail, Fallible};
 
-use cocoa::{base::id, foundation::NSString};
-use core_foundation_sys::string::CFStringRef;
-use std::ffi::CStr;
+use core_foundation::{
+    base::{OSStatus, TCFType},
+    string::{CFString, CFStringRef},
+};
 
 // Opaque C struct.
 enum TISInputSourceRef {}
@@ -12,56 +13,32 @@ enum TISInputSourceRef {}
 #[allow(dead_code)]
 #[link(name = "Carbon", kind = "framework")]
 extern "C" {
-    fn TISCopyCurrentKeyboardInputSource() -> *mut TISInputSourceRef;
+    static kTISPropertyInputSourceID: CFStringRef;
+
+    fn TISCopyCurrentKeyboardInputSource() -> *const TISInputSourceRef;
+    fn TISCopyInputSourceForLanguage(language: CFStringRef) -> *const TISInputSourceRef;
+    fn TISSelectInputSource(input_source_ref: *const TISInputSourceRef) -> OSStatus;
     fn TISGetInputSourceProperty(
-        inputSource: *mut TISInputSourceRef,
+        input_source_ref: *const TISInputSourceRef,
         key: CFStringRef,
     ) -> CFStringRef;
-    fn TISCopyInputSourceForLanguage(CFStringRef: CFStringRef) -> *mut TISInputSourceRef;
-    fn TISSelectInputSource(source: *mut TISInputSourceRef) -> i64;
-    static kTISPropertyLocalizedName: CFStringRef;
-    static kTISPropertyInputSourceID: CFStringRef;
 }
 
-trait ToStr {
-    fn to_str(&self) -> Fallible<&str>;
+pub fn get_input_source() -> String {
+    unsafe {
+        let input_source = TISCopyCurrentKeyboardInputSource();
+        let input_source_id = TISGetInputSourceProperty(input_source, kTISPropertyInputSourceID);
+        CFString::wrap_under_get_rule(input_source_id).to_string()
+    }
 }
 
-impl ToStr for CFStringRef {
-    fn to_str(&self) -> Fallible<&str> {
-        unsafe {
-            let ptr = (*self as id).UTF8String();
-            Ok(CStr::from_ptr(ptr).to_str()?)
+pub fn set_input_source(input_source_id: &str) -> Fallible<()> {
+    unsafe {
+        let input_source_id = CFString::new(input_source_id).as_concrete_TypeRef();
+        let input_source_ref = TISCopyInputSourceForLanguage(input_source_id);
+        if TISSelectInputSource(input_source_ref) != 0 {
+            bail!("Failed to set input source!");
         }
-    }
-}
-
-trait TOCFStringRef {
-    fn to_CFStringRef(&self) -> CFStringRef;
-}
-
-impl TOCFStringRef for str {
-    fn to_CFStringRef(&self) -> CFStringRef {
-        use cocoa::base::nil;
-
-        unsafe { NSString::alloc(nil).init_str(self) as CFStringRef }
-    }
-}
-
-pub fn get_input_source() -> Fallible<String> {
-    let input_source = unsafe { TISCopyCurrentKeyboardInputSource() };
-    let local_name = unsafe { TISGetInputSourceProperty(input_source, kTISPropertyInputSourceID) };
-    Ok(local_name.to_str()?.into())
-}
-
-pub fn set_input_source(input_source_name: String) -> Fallible<()> {
-    let name = input_source_name.as_str().to_CFStringRef();
-
-    let input_source = unsafe { TISCopyInputSourceForLanguage(name) };
-    let ret = unsafe { TISSelectInputSource(input_source) };
-    if ret == 0 {
         Ok(())
-    } else {
-        bail!("Failed to set input source!: {}", ret)
     }
 }

@@ -1,6 +1,6 @@
 use failure::Fallible;
-use structopt::StructOpt;
 use im::{get_input_source, set_input_source};
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 struct Arguments {
@@ -14,10 +14,10 @@ fn main() -> Fallible<()> {
 
     if let Some(inputmethodname) = args.inputmethodname {
         // Set IM.
-        set_input_source(inputmethodname)
+        set_input_source(&inputmethodname)
     } else {
         // Get IM.
-        println!("Current input source: {}", get_input_source()?);
+        println!("Current input source: {}", get_input_source());
         Ok(())
     }
 }
