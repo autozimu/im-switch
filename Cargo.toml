@@ -2,7 +2,7 @@
 name = "im"
 version = "0.1.0"
 authors = ["Junfeng Li <autozimu@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 core-foundation = "*"
