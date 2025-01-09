@@ -1,6 +1,6 @@
 use im::{get_input_source, set_input_source};
 
-fn main() -> () {
+fn main() {
     if let Some(language) = std::env::args().nth(1) {
         // Set IM.
         set_input_source(&language)

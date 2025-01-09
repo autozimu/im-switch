@@ -31,7 +31,7 @@ pub fn get_input_source() -> String {
     }
 }
 
-pub fn set_input_source(language: &str) -> () {
+pub fn set_input_source(language: &str) {
     unsafe {
         let language = CFString::new(language);
         let input_source_ref = TISCopyInputSourceForLanguage(language.as_concrete_TypeRef());
