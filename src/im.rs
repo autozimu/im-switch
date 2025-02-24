@@ -11,7 +11,7 @@ pub struct TISInputSource {
 }
 
 #[link(name = "Carbon", kind = "framework")]
-extern "C" {
+unsafe extern "C" {
     static kTISPropertyInputSourceID: CFStringRef;
 
     fn TISCopyCurrentKeyboardInputSource() -> *const TISInputSource;
